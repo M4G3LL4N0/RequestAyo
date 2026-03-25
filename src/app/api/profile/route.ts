@@ -1,67 +1,94 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+// Schema for validating profile data
+const ProfileSchema = z.object({
+  email: z.string().email(),
+  fullName: z.string().min(1).max(100).optional(),
+  homeCity: z.string().min(1).max(100).optional(),
+  budgetSensitivity: z.number().min(0).max(100).default(50),
+  speedSensitivity: z.number().min(0).max(100).default(50),
+  trustSensitivity: z.number().min(0).max(100).default(75),
+  convenienceSensitivity: z.number().min(0).max(100).default(60),
+});
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const result = ProfileSchema.safeParse(body);
 
-    const email = String(body.email || "").trim().toLowerCase();
-
-    if (!email || !email.includes("@")) {
-      return NextResponse.json({ error: "Valid email required." }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Invalid profile data", details: result.error.issues },
+        { status: 400 }
+      );
     }
 
-    const fullName = body.fullName ? String(body.fullName).trim() : null;
-    const homeCity = body.homeCity ? String(body.homeCity).trim() : null;
-    const budgetSensitivity = Number(body.budgetSensitivity ?? 50);
-    const speedSensitivity = Number(body.speedSensitivity ?? 50);
-    const trustSensitivity = Number(body.trustSensitivity ?? 75);
-    const convenienceSensitivity = Number(body.convenienceSensitivity ?? 60);
+    const {
+      email,
+      fullName,
+      homeCity,
+      budgetSensitivity,
+      speedSensitivity,
+      trustSensitivity,
+      convenienceSensitivity,
+    } = result.data;
 
     const supabase = createServerSupabaseClient();
 
+    // Check if profile exists
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("*")
       .eq("email", email)
       .maybeSingle();
 
+    const profileData = {
+      email,
+      full_name: fullName,
+      home_city: homeCity,
+      budget_sensitivity: budgetSensitivity,
+      speed_sensitivity: speedSensitivity,
+      trust_sensitivity: trustSensitivity,
+      convenience_sensitivity: convenienceSensitivity,
+    };
+
+    let operationResult;
     if (!profile) {
-      const { error } = await supabase.from("user_profiles").insert({
-        email,
-        full_name: fullName,
-        home_city: homeCity,
-        budget_sensitivity: budgetSensitivity,
-        speed_sensitivity: speedSensitivity,
-        trust_sensitivity: trustSensitivity,
-        convenience_sensitivity: convenienceSensitivity,
-      });
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, created: true });
+      // Create new profile
+      operationResult = await supabase
+        .from("user_profiles")
+        .insert(profileData)
+        .select()
+        .single();
+    } else {
+      // Update existing profile
+      operationResult = await supabase
+        .from("user_profiles")
+        .update(profileData)
+        .eq("id", profile.id)
+        .select()
+        .single();
     }
 
-    const { error } = await supabase
-      .from("user_profiles")
-      .update({
-        full_name: fullName,
-        home_city: homeCity,
-        budget_sensitivity: budgetSensitivity,
-        speed_sensitivity: speedSensitivity,
-        trust_sensitivity: trustSensitivity,
-        convenience_sensitivity: convenienceSensitivity,
-      })
-      .eq("id", profile.id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (operationResult.error) {
+      return NextResponse.json(
+        { error: operationResult.error.message },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true, created: false });
-  } catch {
-    return NextResponse.json({ error: "Unexpected server error." }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      created: !profile,
+      profile: operationResult.data,
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return NextResponse.json(
+      { error: "Unexpected server error" },
+      { status: 500 }
+    );
   }
 }

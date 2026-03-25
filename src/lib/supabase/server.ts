@@ -1,15 +1,24 @@
 import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const schema = process.env.NEXT_PUBLIC_SUPABASE_SCHEMA || "requestayo";
+import { SUPABASE_SCHEMA, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from "./config";
 
 export function createServerSupabaseClient() {
-  return createClient(supabaseUrl, serviceRoleKey, {
-    db: { schema },
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: SUPABASE_SCHEMA },
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+    },
+  });
+}
+
+// For future auth integration
+export function createServerClient(cookieStore: any) {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    db: { schema: SUPABASE_SCHEMA },
+    auth: {
+      cookieStore,
+      persistSession: true,
+      autoRefreshToken: true,
     },
   });
 }
