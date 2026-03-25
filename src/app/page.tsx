@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AyoDemo } from "@/components/AyoDemo";
 import { Section } from "@/components/Section";
 import { WaitlistForm } from "@/components/WaitlistForm";
@@ -51,18 +52,39 @@ export default function HomePage() {
               <WaitlistForm />
             </div>
 
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/profile"
+                className="rounded-2xl bg-white px-5 py-3 font-medium text-slate-950"
+              >
+                Tune profile
+              </Link>
+              <Link
+                href="/dashboard"
+                className="rounded-2xl border border-slate-700 px-5 py-3 font-medium text-white"
+              >
+                View dashboard
+              </Link>
+            </div>
+
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <p className="text-2xl font-semibold">1</p>
-                <p className="mt-2 text-sm text-slate-300">One interface for rides, food, sends, and trusted local recommendations.</p>
+                <p className="mt-2 text-sm text-slate-300">
+                  One interface for rides, food, sends, and trusted local recommendations.
+                </p>
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <p className="text-2xl font-semibold">Trust</p>
-                <p className="mt-2 text-sm text-slate-300">Ayo ranks options using reliability, fit, speed, and user preferences.</p>
+                <p className="mt-2 text-sm text-slate-300">
+                  Ayo ranks options using reliability, fit, speed, and user preferences.
+                </p>
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <p className="text-2xl font-semibold">Memory</p>
-                <p className="mt-2 text-sm text-slate-300">Each request improves your profile for better future recommendations.</p>
+                <p className="mt-2 text-sm text-slate-300">
+                  Each request improves your profile for better future recommendations.
+                </p>
               </div>
             </div>
           </div>
