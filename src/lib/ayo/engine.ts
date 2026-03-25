@@ -4,99 +4,211 @@ export type AyoCategory =
   | "delivery"
   | "business"
   | "advice"
+  | "shopping"
+  | "travel"
   | "general";
 
+export type AyoIntent = {
+  primary: string;
+  secondary: string[];
+};
+
 export type AyoProfile = {
-  budgetSensitivity?: number;
-  speedSensitivity?: number;
-  trustSensitivity?: number;
-  convenienceSensitivity?: number;
+  budgetSensitivity?: number; // 0-100
+  speedSensitivity?: number; // 0-100  
+  trustSensitivity?: number; // 0-100
+  convenienceSensitivity?: number; // 0-100
+  preferredProviders?: {
+    providerName: string;
+    providerType: string;
+    preferenceScore: number; // 0-100  
+  }[];
+  dislikedProviders?: {
+    providerName: string;
+    providerType: string;
+    rejectionScore: number; // 0-100
+  }[];
   preferredCategories?: string[];
-  dislikedProviders?: string[];
+  metadata?: Record<string, unknown>;
 };
 
 export type AyoOption = {
   providerType: string;
   providerName: string;
-  score: number;
+  baseScore: number;
+  adjustedScore: number;
   priceEstimate?: string;
   etaEstimate?: string;
   trustScore?: number;
   notes?: string;
+  reasoning: string[];
+  flags?: string[];
   metadata?: Record<string, unknown>;
 };
 
 export type AyoResult = {
+  requestId: string;
+  timestamp: string;
+  detectedIntent: AyoIntent;
   category: AyoCategory;
+  primary: AyoOption;
+  alternatives: AyoOption[];
   summary: string;
-  options: AyoOption[];
+  debug?: {
+    profileInfluence?: Record<string, number>;
+    providerPreferences?: Record<string, number>;
+  };
 };
 
-function detectCategory(input: string): AyoCategory {
-  const text = input.toLowerCase();
+function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent} {
+  const text = input.toLowerCase().trim();
+  const words = text.split(/\s+/);
+  const bigrams = words.slice(0, -1).map((_, i) => words.slice(i, i+2).join(' '));
+  const trigrams = words.slice(0, -2).map((_, i) => words.slice(i, i+3).join(' '));
 
-  if (
-    text.includes("ride") ||
-    text.includes("uber") ||
-    text.includes("lyft") ||
-    text.includes("get me there") ||
-    text.includes("drive")
-  ) {
-    return "ride";
-  }
+  // Detection patterns
+  const patterns = {
+    ride: [
+      /(ride|uber|lyft|taxi|cab)/,
+      /(get me to|need (a|to) go)/,
+      /(pick me up|drop me off)/,
+      /(drive|transport|carpool)/
+    ],
+    food: [
+      /(food|eat|hungry|restaurant)/,
+      /(order(?!.*ship)|takeout|delivery)/,
+      /(dinner|lunch|breakfast|meal)/,
+      /(hungry|starving|craving)/
+    ],
+    delivery: [
+      /(deliver|ship|send|mail)/,
+      /(package|parcel)/,
+      /(ups|usps|fedex|dhl)/,
+      /(same day|overnight)/,
+      /(courier|dispatch)/ 
+    ],
+    business: [
+      /(business|shop|store)/,
+      /(mechanic|repair|service)/,
+      /(haircut|barber|salon)/,
+      /(doctor|dentist|appointment)/ 
+    ],
+    shopping: [
+      /(buy|purchase)/,
+      /(shop(|ping)|store)/,
+      /(product|item|goods)/,
+      /(best deal|price|cheap)/
+    ],
+    travel: [
+      /(flight|airplane)/,
+      /(hotel|accommodation)/,
+      /(vacation|trip)/,
+      /(travel|journey)/
+    ],
+    advice: [
+      /(what should|how to)/,
+      /(best way|recommend)/,
+      /(should i|advice)/,
+      /(opinion|suggestion)/
+    ]
+  };
 
-  if (
-    text.includes("food") ||
-    text.includes("eat") ||
-    text.includes("hungry") ||
-    text.includes("restaurant") ||
-    text.includes("order")
-  ) {
-    return "food";
-  }
+  // Find matches  
+  const matchedCategories = Object.entries(patterns)
+    .filter(([_, regexes]) => regexes.some(r => r.test(text)))
+    .map(([cat]) => cat as AyoCategory);
 
-  if (
-    text.includes("deliver") ||
-    text.includes("send") ||
-    text.includes("ship") ||
-    text.includes("usps") ||
-    text.includes("ups") ||
-    text.includes("fedex")
-  ) {
-    return "delivery";
-  }
+  // Determine primary category
+  const category = matchedCategories.length > 0 
+    ? matchedCategories[0] 
+    : 'general';
 
-  if (
-    text.includes("business") ||
-    text.includes("shop") ||
-    text.includes("barber") ||
-    text.includes("mechanic") ||
-    text.includes("repair") ||
-    text.includes("tire")
-  ) {
-    return "business";
-  }
+  // Extract primary intent
+  const primaryIntent = (() => {
+    if (/cheap|budget|save money/.test(text)) return 'budget_focused';
+    if (/fast|quick|urgent|asap/.test(text)) return 'speed_focused'; 
+    if (/best|quality|luxury/.test(text)) return 'quality_focused';
+    if (/nearby|close|local/.test(text)) return 'location_focused';
+    return 'balanced';
+  })();
 
-  if (
-    text.includes("best way") ||
-    text.includes("how should") ||
-    text.includes("what should i do") ||
-    text.includes("advice")
-  ) {
-    return "advice";
-  }
-
-  return "general";
+  return {
+    category,
+    intent: {
+      primary: primaryIntent,
+      secondary: matchedCategories.slice(1)
+    }
+  };
 }
 
-function applyProfileBoost(base: number, trustScore: number, profile?: AyoProfile) {
-  const trustSensitivity = profile?.trustSensitivity ?? 75;
-  const convenienceSensitivity = profile?.convenienceSensitivity ?? 60;
-  return (
-    base +
-    trustScore * (trustSensitivity / 100) * 0.15 +
-    convenienceSensitivity * 0.05
-  );
+function calculateOptionScores(
+  options: AyoOption[],
+  profile?: AyoProfile
+): AyoOption[] {
+  return options.map(opt => {
+    const reasoning: string[] = [];
+    let adjustedScore = opt.baseScore;
+    
+    // Apply profile preferences
+    if (profile) {
+      // Budget sensitivity (0-100)
+      const budgetWeight = profile.budgetSensitivity ?? 50;
+      if (opt.priceEstimate) {
+        const priceImpact = budgetWeight > 70 ? 
+          (budgetWeight - 70) * 0.15 :
+          budgetWeight < 30 ? 
+            (30 - budgetWeight) * -0.1 : 
+            0;
+        adjustedScore += priceImpact;
+        reasoning.push(`Budget sensitivity ${budgetWeight} adjusted score by ${priceImpact.toFixed(1)}`);
+      }
+
+      // Speed sensitivity  
+      const speedWeight = profile.speedSensitivity ?? 50;
+      if (opt.etaEstimate) {
+        const speedImpact = speedWeight > 70 ?
+          (speedWeight - 70) * 0.12 :
+          speedWeight < 30 ?
+            (30 - speedWeight) * -0.08 :
+            0;
+        adjustedScore += speedImpact;
+        reasoning.push(`Speed sensitivity ${speedWeight} adjusted score by ${speedImpact.toFixed(1)}`);
+      }
+
+      // Preferred providers boost  
+      if (profile.preferredProviders) {
+        const prefMatch = profile.preferredProviders.find(
+          p => p.providerName === opt.providerName && p.providerType === opt.providerType
+        );
+        if (prefMatch) {
+          const prefBoost = Math.min(10, prefMatch.preferenceScore / 10);
+          adjustedScore += prefBoost;
+          reasoning.push(`Preferred provider "${opt.providerName}" boosted score by ${prefBoost.toFixed(1)}`);
+        }
+      }
+
+      // Disliked providers penalty
+      if (profile.dislikedProviders) {
+        const dislikeMatch = profile.dislikedProviders.find(
+          p => p.providerName === opt.providerName && p.providerType === opt.providerType
+        );
+        if (dislikeMatch) {
+          const dislikePenalty = Math.min(15, dislikeMatch.rejectionScore / 6.67);
+          adjustedScore -= dislikePenalty;
+          reasoning.push(`Disliked provider "${opt.providerName}" penalized score by ${dislikePenalty.toFixed(1)}`);
+        }
+      }
+    }
+
+    // Ensure score stays within bounds
+    adjustedScore = Math.max(0, Math.min(100, adjustedScore));
+
+    return {
+      ...opt,
+      adjustedScore,
+      reasoning
+    };
+  });
 }
 
 export function generateAyoRecommendation(
