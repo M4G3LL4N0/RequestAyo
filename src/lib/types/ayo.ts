@@ -31,6 +31,12 @@ export type AyoRequestRow = {
   request_context: Json;
   response_summary: string | null;
   selected_option: Json | null;
+  completion_status: string;
+  completed_at: string | null;
+  selected_provider_name: string | null;
+  selected_provider_type: string | null;
+  selected_score: number | null;
+  explanation: Json;
   created_at: string;
 };
 
@@ -57,4 +63,31 @@ export type FeedbackEventRow = {
   feedback_text: string | null;
   metadata: Json;
   created_at: string;
+};
+
+export type AyoReasoning = {
+  topReason: string;
+  tradeoff?: string;
+  whyNow?: string;
+  confidence?: number;
+};
+
+export type AyoOption = {
+  providerType: string;
+  providerName: string;
+  score: number;
+  priceEstimate?: string;
+  etaEstimate?: string;
+  trustScore?: number;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  reasoning?: AyoReasoning;
+};
+
+export type AyoResult = {
+  category: string;
+  summary: string;
+  primaryRecommendation?: AyoOption;
+  alternatives?: AyoOption[];
+  options?: AyoOption[];
 };
