@@ -62,56 +62,61 @@ export type AyoResult = {
 
 function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent} {
   const text = input.toLowerCase().trim();
-  const words = text.split(/\s+/);
-  const bigrams = words.slice(0, -1).map((_, i) => words.slice(i, i+2).join(' '));
-  const trigrams = words.slice(0, -2).map((_, i) => words.slice(i, i+3).join(' '));
-
-  // Detection patterns
-  const patterns = {
+  
+  // Enhanced detection patterns with weights
+  const patterns: Record<AyoCategory, {regex: RegExp, weight: number}[]> = {
     ride: [
-      /(ride|uber|lyft|taxi|cab)/,
-      /(get me to|need (a|to) go)/,
-      /(pick me up|drop me off)/,
-      /(drive|transport|carpool)/
+      {regex: /(ride|uber|lyft|taxi|cab)/, weight: 1.0},
+      {regex: /(get me to|need (a|to) go)/, weight: 0.9},
+      {regex: /(pick me up|drop me off)/, weight: 0.95},
+      {regex: /(drive|transport|carpool)/, weight: 0.8}
     ],
     food: [
-      /(food|eat|hungry|restaurant)/,
-      /(order(?!.*ship)|takeout|delivery)/,
-      /(dinner|lunch|breakfast|meal)/,
-      /(hungry|starving|craving)/
+      {regex: /(food|eat|hungry|restaurant)/, weight: 1.0},
+      {regex: /(order(?!.*ship)|takeout|delivery)/, weight: 0.95},
+      {regex: /(dinner|lunch|breakfast|meal)/, weight: 0.85},
+      {regex: /(hungry|starving|craving)/, weight: 0.9}
     ],
     delivery: [
-      /(deliver|ship|send|mail)/,
-      /(package|parcel)/,
-      /(ups|usps|fedex|dhl)/,
-      /(same day|overnight)/,
-      /(courier|dispatch)/ 
+      {regex: /(deliver|ship|send|mail)/, weight: 1.0},
+      {regex: /(package|parcel)/, weight: 0.9},
+      {regex: /(ups|usps|fedex|dhl)/, weight: 0.95},
+      {regex: /(same day|overnight)/, weight: 0.85},
+      {regex: /(courier|dispatch)/, weight: 0.8}
     ],
     business: [
-      /(business|shop|store)/,
-      /(mechanic|repair|service)/,
-      /(haircut|barber|salon)/,
-      /(doctor|dentist|appointment)/ 
+      {regex: /(business|shop|store)/, weight: 1.0},
+      {regex: /(mechanic|repair|service)/, weight: 0.9},
+      {regex: /(haircut|barber|salon)/, weight: 0.85},
+      {regex: /(doctor|dentist|appointment)/, weight: 0.95}
     ],
     shopping: [
-      /(buy|purchase)/,
-      /(shop(|ping)|store)/,
-      /(product|item|goods)/,
-      /(best deal|price|cheap)/
+      {regex: /(buy|purchase)/, weight: 1.0},
+      {regex: /(shop(|ping)|store)/, weight: 0.9},
+      {regex: /(product|item|goods)/, weight: 0.85},
+      {regex: /(best deal|price|cheap)/, weight: 0.95}
     ],
     travel: [
-      /(flight|airplane)/,
-      /(hotel|accommodation)/,
-      /(vacation|trip)/,
-      /(travel|journey)/
+      {regex: /(flight|airplane)/, weight: 1.0},
+      {regex: /(hotel|accommodation)/, weight: 0.9},
+      {regex: /(vacation|trip)/, weight: 0.85},
+      {regex: /(travel|journey)/, weight: 0.8}
     ],
     advice: [
-      /(what should|how to)/,
-      /(best way|recommend)/,
-      /(should i|advice)/,
-      /(opinion|suggestion)/
+      {regex: /(what should|how to)/, weight: 1.0},
+      {regex: /(best way|recommend)/, weight: 0.95},
+      {regex: /(should i|advice)/, weight: 0.9},
+      {regex: /(opinion|suggestion)/, weight: 0.85}
     ]
   };
+
+  // Calculate category scores
+  const categoryScores = Object.entries(patterns).map(([cat, regexes]) => {
+    const score = regexes.reduce((sum, {regex, weight}) => {
+      return sum + (regex.test(text) ? weight : 0);
+    }, 0);
+    return {category: cat as AyoCategory, score};
+  }).filter(({score}) => score > 0);
 
   // Find matches  
   const matchedCategories = Object.entries(patterns)
@@ -151,62 +156,67 @@ function calculateOptionScores(
     
     // Apply profile preferences
     if (profile) {
-      // Budget sensitivity (0-100)
+      // Enhanced budget sensitivity with non-linear scaling
       const budgetWeight = profile.budgetSensitivity ?? 50;
       if (opt.priceEstimate) {
-        const priceImpact = budgetWeight > 70 ? 
-          (budgetWeight - 70) * 0.15 :
-          budgetWeight < 30 ? 
-            (30 - budgetWeight) * -0.1 : 
-            0;
+        const priceImpact = Math.tanh((budgetWeight - 50) / 25) * 10;
         adjustedScore += priceImpact;
         reasoning.push(`Budget sensitivity ${budgetWeight} adjusted score by ${priceImpact.toFixed(1)}`);
       }
 
-      // Speed sensitivity  
+      // Enhanced speed sensitivity with exponential decay
       const speedWeight = profile.speedSensitivity ?? 50;
       if (opt.etaEstimate) {
-        const speedImpact = speedWeight > 70 ?
-          (speedWeight - 70) * 0.12 :
-          speedWeight < 30 ?
-            (30 - speedWeight) * -0.08 :
-            0;
+        const speedImpact = Math.exp(-Math.abs(speedWeight - 50) / 25) * 8;
         adjustedScore += speedImpact;
         reasoning.push(`Speed sensitivity ${speedWeight} adjusted score by ${speedImpact.toFixed(1)}`);
       }
 
-      // Preferred providers boost  
+      // Enhanced trust sensitivity with sigmoid function
+      const trustWeight = profile.trustSensitivity ?? 50;
+      if (opt.trustScore) {
+        const trustImpact = 1 / (1 + Math.exp(-(trustWeight - 50) / 10)) * 6;
+        adjustedScore += trustImpact;
+        reasoning.push(`Trust sensitivity ${trustWeight} adjusted score by ${trustImpact.toFixed(1)}`);
+      }
+
+      // Enhanced provider preferences with diminishing returns
       if (profile.preferredProviders) {
         const prefMatch = profile.preferredProviders.find(
           p => p.providerName === opt.providerName && p.providerType === opt.providerType
         );
         if (prefMatch) {
-          const prefBoost = Math.min(10, prefMatch.preferenceScore / 10);
+          const prefBoost = Math.log1p(prefMatch.preferenceScore) * 2;
           adjustedScore += prefBoost;
           reasoning.push(`Preferred provider "${opt.providerName}" boosted score by ${prefBoost.toFixed(1)}`);
         }
       }
 
-      // Disliked providers penalty
+      // Enhanced disliked providers with exponential penalty
       if (profile.dislikedProviders) {
         const dislikeMatch = profile.dislikedProviders.find(
           p => p.providerName === opt.providerName && p.providerType === opt.providerType
         );
         if (dislikeMatch) {
-          const dislikePenalty = Math.min(15, dislikeMatch.rejectionScore / 6.67);
-          adjustedScore -= dislikePenalty;
+          const dislikePenalty = Math.exp(dislikeMatch.rejectionScore / 25) * -1.5;
+          adjustedScore += dislikePenalty;
           reasoning.push(`Disliked provider "${opt.providerName}" penalized score by ${dislikePenalty.toFixed(1)}`);
         }
       }
     }
 
-    // Ensure score stays within bounds
-    adjustedScore = Math.max(0, Math.min(100, adjustedScore));
+    // Ensure score stays within bounds with soft clipping
+    adjustedScore = 100 / (1 + Math.exp(-(adjustedScore - 50) / 25));
 
     return {
       ...opt,
-      adjustedScore,
-      reasoning
+      adjustedScore: Math.round(adjustedScore),
+      reasoning,
+      flags: [
+        ...(opt.flags || []),
+        ...(adjustedScore > 90 ? ['top_pick'] : []),
+        ...(adjustedScore < 30 ? ['low_confidence'] : [])
+      ]
     };
   });
 }
@@ -215,46 +225,54 @@ export function generateAyoRecommendation(
   input: string,
   profile?: AyoProfile
 ): AyoResult {
-  const category = detectCategory(input);
-
-  if (category === "ride") {
-    const options: AyoOption[] = [
+  const { category, intent } = detectIntent(input);
+  
+  // Base options with enhanced reasoning
+  const baseOptions: Record<AyoCategory, AyoOption[]> = {
+    ride: [
       {
         providerType: "ride",
         providerName: "UberX",
-        score: applyProfileBoost(81, 78, profile),
+        baseScore: 81,
         priceEstimate: "$18-$24",
         etaEstimate: "6 min",
         trustScore: 78,
-        notes: "Balanced speed and availability."
+        notes: "Balanced speed and availability.",
+        reasoning: [
+          "Consistent availability across most areas",
+          "Reliable pricing estimates",
+          "Wide driver network"
+        ]
       },
       {
         providerType: "ride",
         providerName: "Lyft",
-        score: applyProfileBoost(84, 82, profile),
+        baseScore: 84,
         priceEstimate: "$17-$23",
         etaEstimate: "5 min",
         trustScore: 82,
-        notes: "Best overall current ride option."
+        notes: "Best overall current ride option.",
+        reasoning: [
+          "Slightly better pricing than competitors",
+          "Fastest average pickup times",
+          "Excellent driver ratings"
+        ]
       },
       {
         providerType: "ride",
         providerName: "Transit + Walk",
-        score: applyProfileBoost(72, 88, profile),
+        baseScore: 72,
         priceEstimate: "$2-$5",
         etaEstimate: "18 min",
         trustScore: 88,
-        notes: "Cheapest option if you can trade speed for savings."
+        notes: "Cheapest option if you can trade speed for savings.",
+        reasoning: [
+          "Most cost-effective solution",
+          "Environmentally friendly",
+          "Highest reliability score"
+        ]
       }
-    ].sort((a, b) => b.score - a.score);
-
-    return {
-      category,
-      summary:
-        "Ayo recommends Lyft as the best current mix of speed, reliability, and price.",
-      options,
-    };
-  }
+    ],
 
   if (category === "food") {
     const options: AyoOption[] = [
