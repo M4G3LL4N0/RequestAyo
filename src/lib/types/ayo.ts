@@ -75,13 +75,21 @@ export type AyoReasoning = {
 export type AyoOption = {
   providerType: string;
   providerName: string;
-  score: number;
+  baseScore: number;
+  adjustedScore: number;
   priceEstimate?: string;
   etaEstimate?: string;
   trustScore?: number;
   notes?: string;
+  reasoning: string[];
+  flags?: string[];
   metadata?: Record<string, unknown>;
-  reasoning?: AyoReasoning;
+  reasoningDetails?: {
+    topReason?: string;
+    tradeoff?: string;
+    whyNow?: string;
+    confidence?: number;
+  };
 };
 
 export type AyoResult = {
