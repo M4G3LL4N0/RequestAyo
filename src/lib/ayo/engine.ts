@@ -483,7 +483,20 @@ export function generateAyoRecommendation(
   const alternatives = scoredOptions.slice(1);
 
   return {
-    requestId: crypto.randomUUID(),
+    requestId: (() => {
+      try {
+        if (typeof window !== 'undefined' && window.crypto) {
+          return window.crypto.randomUUID();
+        }
+        if (typeof require === 'function') {
+          return require('crypto').randomUUID();
+        }
+        throw new Error('No UUID generation method available');
+      } catch (err) {
+        // Fallback to timestamp-based ID if crypto fails
+        return `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      }
+    })(),
     timestamp: new Date().toISOString(),
     detectedIntent: intent,
     category,
