@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { UserProfileRow, AyoRequestRow, ProviderRecommendationRow } from "../types/ayo";
 import { SUPABASE_SCHEMA, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from "./config";
 
 export function createServerSupabaseClient() {
