@@ -70,7 +70,12 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
   const text = input.toLowerCase().trim();
   
   // Enhanced detection patterns with weights
-  const patterns: Record<AyoCategory, {regex: RegExp, weight: number}[]> = {
+  interface Pattern {
+    regex: RegExp;
+    weight: number;
+  }
+
+  const patterns: Record<AyoCategory, Pattern[]> = {
     general: [
       {regex: /(best|recommend|suggest)/, weight: 0.8},
       {regex: /(what|which|where)/, weight: 0.7}
