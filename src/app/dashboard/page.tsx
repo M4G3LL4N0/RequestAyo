@@ -1,14 +1,32 @@
 import { RequestHistory } from "@/components/dashboard/RequestHistory";
 import { getDashboardData } from "@/lib/actions/dashboard";
 
+type DashboardData = {
+  profile: {
+    budget_sensitivity: number;
+    speed_sensitivity: number;
+    trust_sensitivity: number;
+    convenience_sensitivity: number;
+  } | null;
+  requests: any[];
+  recommendationsByRequest: Record<string, any[]>;
+};
+
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: { email?: string };
 }) {
-  const resolvedSearchParams = await searchParams;
-  const email = resolvedSearchParams.email || "";
-  const data = email ? await getDashboardData(email) : null;
+  const email = searchParams.email || "";
+  let data: DashboardData | null = null;
+  
+  try {
+    if (email) {
+      data = await getDashboardData(email);
+    }
+  } catch (error) {
+    console.error("Failed to fetch dashboard data:", error);
+  }
 
   const requestCount = data?.requests.length || 0;
   const recommendationCount = Object.values(data?.recommendationsByRequest || {}).reduce(
@@ -17,10 +35,10 @@ export default async function DashboardPage({
   );
 
   const averageTopRecommendationScore =
-    requestCount > 0
+    data && requestCount > 0
       ? Math.round(
-          data!.requests.reduce((acc, request) => {
-            const recommendations = data!.recommendationsByRequest[request.id] || [];
+          data.requests.reduce((acc, request) => {
+            const recommendations = data.recommendationsByRequest[request.id] || [];
             const topScore = recommendations.length > 0 ? Number(recommendations[0].score) : 0;
             return acc + topScore;
           }, 0) / requestCount
@@ -47,6 +65,7 @@ export default async function DashboardPage({
             defaultValue={email}
             placeholder="Enter user email"
             className="h-12 flex-1 rounded-2xl border border-slate-700 bg-slate-900 px-4 text-white outline-none focus:border-sky-500"
+            required
           />
           <button
             type="submit"
@@ -84,35 +103,45 @@ export default async function DashboardPage({
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
-                <h2 className="text-2xl font-semibold text-white">Profile</h2>
-                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-400">Budget</p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {data.profile.budget_sensitivity}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-400">Speed</p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {data.profile.speed_sensitivity}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-400">Trust</p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {data.profile.trust_sensitivity}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-400">Convenience</p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {data.profile.convenience_sensitivity}
-                    </p>
+              {data.profile && (
+                <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+                  <h2 className="text-2xl font-semibold text-white">Profile</h2>
+                  <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                      <p className="text-sm text-slate-400">Budget</p>
+                      <div className="mt-4 space-y-2">
+                        <p className="text-2xl font-semibold">
+                          {data.profile.budget_sensitivity}
+                        </p>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full">
+                          <div 
+                            className="h-full bg-gradient-to-r from-sky-600 to-violet-600 rounded-full" 
+                            style={{ width: `${Math.min(Math.max(data.profile.budget_sensitivity, 0), 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                      <p className="text-sm text-slate-400">Speed</p>
+                      <p className="mt-2 text-2xl font-semibold">
+                        {data.profile.speed_sensitivity}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                      <p className="text-sm text-slate-400">Trust</p>
+                      <p className="mt-2 text-2xl font-semibold">
+                        {data.profile.trust_sensitivity}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+                      <p className="text-sm text-slate-400">Convenience</p>
+                      <p className="mt-2 text-2xl font-semibold">
+                        {data.profile.convenience_sensitivity}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <RequestHistory
                 requests={data.requests}
