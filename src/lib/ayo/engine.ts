@@ -44,6 +44,12 @@ export type AyoOption = {
   reasoning: string[];
   flags?: string[];
   metadata?: Record<string, unknown>;
+  reasoningDetails?: {
+    topReason?: string;
+    tradeoff?: string;
+    whyNow?: string;
+    confidence?: number;
+  };
 };
 
 export type AyoResult = {
@@ -229,6 +235,19 @@ export function generateAyoRecommendation(
   
   // Base options with enhanced reasoning
   const baseOptions: Record<AyoCategory, AyoOption[]> = {
+    general: [
+      {
+        providerType: "general",
+        providerName: "Ayo Default",
+        baseScore: 75,
+        notes: "General recommendation when no specific category matches.",
+        reasoning: [
+          "Broad applicability",
+          "Balanced approach",
+          "Reliable default"
+        ]
+      }
+    ],
     ride: [
       {
         providerType: "ride",
@@ -273,130 +292,193 @@ export function generateAyoRecommendation(
         ]
       }
     ],
-
-  if (category === "food") {
-    const options: AyoOption[] = [
+    food: [
       {
         providerType: "food",
         providerName: "DoorDash Top Pick",
-        score: applyProfileBoost(82, 80, profile),
+        baseScore: 82,
         priceEstimate: "$22-$28",
         etaEstimate: "24 min",
         trustScore: 80,
-        notes: "Best balance of speed and consistency."
+        notes: "Best balance of speed and consistency.",
+        reasoning: [
+          "Wide restaurant selection",
+          "Reliable delivery times",
+          "Good customer support"
+        ]
       },
       {
         providerType: "food",
         providerName: "Uber Eats Best Value",
-        score: applyProfileBoost(79, 76, profile),
+        baseScore: 79,
         priceEstimate: "$16-$21",
         etaEstimate: "29 min",
         trustScore: 76,
-        notes: "Lower total cost and solid quality."
+        notes: "Lower total cost and solid quality.",
+        reasoning: [
+          "Competitive pricing",
+          "Good restaurant partnerships",
+          "Easy to use app"
+        ]
       },
       {
         providerType: "food",
         providerName: "Pickup Nearby",
-        score: applyProfileBoost(75, 90, profile),
+        baseScore: 75,
         priceEstimate: "$14-$19",
         etaEstimate: "14 min",
         trustScore: 90,
-        notes: "Best if you want the freshest option and lowest fees."
+        notes: "Best if you want the freshest option and lowest fees.",
+        reasoning: [
+          "Freshest food quality",
+          "No delivery fees",
+          "Support local businesses"
+        ]
       }
-    ].sort((a, b) => b.score - a.score);
-
-    return {
-      category,
-      summary:
-        "Ayo recommends a DoorDash top pick right now for the strongest overall convenience and consistency.",
-      options,
-    };
-  }
-
-  if (category === "delivery") {
-    const options: AyoOption[] = [
+    ],
+    delivery: [
       {
         providerType: "delivery",
         providerName: "UPS Ground",
-        score: applyProfileBoost(86, 89, profile),
+        baseScore: 86,
         priceEstimate: "$9-$14",
         etaEstimate: "2-4 days",
         trustScore: 89,
-        notes: "Best default balance of cost and reliability."
+        notes: "Best default balance of cost and reliability.",
+        reasoning: [
+          "Wide coverage area",
+          "Reliable tracking",
+          "Good customer service"
+        ]
       },
       {
         providerType: "delivery",
         providerName: "USPS Priority Mail",
-        score: applyProfileBoost(80, 74, profile),
+        baseScore: 80,
         priceEstimate: "$8-$12",
         etaEstimate: "2-3 days",
         trustScore: 74,
-        notes: "Good if cost matters slightly more."
+        notes: "Good if cost matters slightly more.",
+        reasoning: [
+          "Cost-effective",
+          "Wide network",
+          "Government-backed"
+        ]
       },
       {
         providerType: "delivery",
         providerName: "FedEx Express Saver",
-        score: applyProfileBoost(78, 84, profile),
+        baseScore: 78,
         priceEstimate: "$16-$24",
         etaEstimate: "1-3 days",
         trustScore: 84,
-        notes: "Good faster option if urgency is higher."
+        notes: "Good faster option if urgency is higher.",
+        reasoning: [
+          "Fast delivery options",
+          "Reliable service",
+          "Good for time-sensitive packages"
+        ]
       }
-    ].sort((a, b) => b.score - a.score);
-
-    return {
-      category,
-      summary:
-        "Ayo recommends UPS Ground as the strongest overall send option for most non-urgent deliveries.",
-      options,
-    };
-  }
-
-  if (category === "business") {
-    const options: AyoOption[] = [
+    ],
+    business: [
       {
         providerType: "business",
         providerName: "Highest Trust Local Option",
-        score: applyProfileBoost(88, 92, profile),
+        baseScore: 88,
         trustScore: 92,
-        notes: "Best trust-weighted local recommendation."
+        notes: "Best trust-weighted local recommendation.",
+        reasoning: [
+          "Highest customer satisfaction",
+          "Proven track record",
+          "Excellent reviews"
+        ]
       },
       {
         providerType: "business",
         providerName: "Best Value Local Option",
-        score: applyProfileBoost(82, 80, profile),
+        baseScore: 82,
         trustScore: 80,
-        notes: "Best value recommendation for price-conscious users."
+        notes: "Best value recommendation for price-conscious users.",
+        reasoning: [
+          "Competitive pricing",
+          "Good quality",
+          "Budget-friendly"
+        ]
       },
       {
         providerType: "business",
         providerName: "Fastest Available Local Option",
-        score: applyProfileBoost(79, 76, profile),
+        baseScore: 79,
         trustScore: 76,
-        notes: "Best if speed matters most."
-      }
-    ].sort((a, b) => b.score - a.score);
-
-    return {
-      category,
-      summary:
-        "Ayo recommends the highest-trust local option first, with price and speed alternatives behind it.",
-      options,
-    };
-  }
-
-  return {
-    category,
-    summary:
-      "Ayo recommends starting with the highest-trust, lowest-friction option and refining from your preferences over time.",
-    options: [
-      {
-        providerType: "general",
-        providerName: "Ayo Smart Recommendation",
-        score: applyProfileBoost(85, 85, profile),
-        trustScore: 85,
-        notes: "Ayo will improve recommendations as your request history grows."
+        notes: "Best if speed matters most.",
+        reasoning: [
+          "Quick turnaround",
+          "Efficient service",
+          "Time-sensitive solutions"
+        ]
       }
     ],
+    advice: [
+      {
+        providerType: "advice",
+        providerName: "Ayo Expert",
+        baseScore: 85,
+        notes: "Personalized recommendation based on your needs.",
+        reasoning: [
+          "Context-aware suggestions",
+          "Balanced perspective",
+          "Trusted advice"
+        ]
+      }
+    ],
+    shopping: [
+      {
+        providerType: "shopping",
+        providerName: "Best Value Retailer",
+        baseScore: 82,
+        notes: "Top-rated shopping option for your needs.",
+        reasoning: [
+          "Price-quality balance",
+          "Reliable service",
+          "Good return policy"
+        ]
+      }
+    ],
+    travel: [
+      {
+        providerType: "travel",
+        providerName: "Top Travel Option",
+        baseScore: 83,
+        notes: "Recommended travel solution.",
+        reasoning: [
+          "Best value",
+          "Reliable service",
+          "Good customer support"
+        ]
+      }
+    ]
+  };
+
+  const options = baseOptions[category] || baseOptions.general;
+  const scoredOptions = calculateOptionScores(options, profile);
+  
+  const primary = scoredOptions[0];
+  const alternatives = scoredOptions.slice(1);
+
+  return {
+    requestId: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    detectedIntent: intent,
+    category,
+    primary,
+    alternatives,
+    summary: `Ayo recommends ${primary.providerName} as your best option for ${category} needs.`,
+    debug: {
+      profileInfluence: profile ? {
+        budgetSensitivity: profile.budgetSensitivity,
+        speedSensitivity: profile.speedSensitivity,
+        trustSensitivity: profile.trustSensitivity
+      } : undefined
+    }
   };
 }
