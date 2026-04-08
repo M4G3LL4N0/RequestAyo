@@ -78,27 +78,87 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
 
   const patterns: Record<AyoCategory, Pattern[]> = {
     general: [
-      {regex: /(best|recommend|suggest)/, weight: 0.8},
-      {regex: /(what|which|where)/, weight: 0.7}
+      {
+        regex: /(recommend|suggest|what.*best)/i, 
+        weight: 0.8,
+        test: (text) => !/(ride|food|delivery|shop|business)/i.test(text),
+      },
+      {
+        regex: /(what|which|where)/i, 
+        weight: 0.7,
+        test: (text) => true,
+      }
     ],
     ride: [
-      {regex: /(ride|uber|lyft|taxi|cab)/, weight: 1.0},
-      {regex: /(get me to|need (a|to) go)/, weight: 0.9},
-      {regex: /(pick me up|drop me off)/, weight: 0.95},
-      {regex: /(drive|transport|carpool)/, weight: 0.8}
+      {
+        regex: /(ride|uber|lyft|taxi|cab)/i,
+        weight: 1.0,
+        test: (text) => !/(food|delivery|eat|deliver|ship)/i.test(text),
+      },
+      {
+        regex: /(get me to|need (a|to) go)/i,
+        weight: 0.9,
+        test: (text) => !/(food|delivery)/i.test(text),
+      },
+      {
+        regex: /(pick me up|drop me off)/i,
+        weight: 0.95,
+        test: (text) => !/(food|delivery)/i.test(text),
+      },
+      {
+        regex: /(drive|transport|carpool)/i,
+        weight: 0.8,
+        test: (text) => !/(food|delivery)/i.test(text),
+      }
     ],
     food: [
-      {regex: /(food|eat|hungry|restaurant)/, weight: 1.0},
-      {regex: /(order(?!.*ship)|takeout|delivery)/, weight: 0.95},
-      {regex: /(dinner|lunch|breakfast|meal)/, weight: 0.85},
-      {regex: /(hungry|starving|craving)/, weight: 0.9}
+      {
+        regex: /(food|eat|hungry|restaurant)/i,
+        weight: 1.0,
+        test: (text) => !/(ride|deliver|ship)/i.test(text),
+      },
+      {
+        regex: /(order(?!.*ship)|takeout|delivery)/i,
+        weight: 0.95,
+        test: (text) => true,
+      },
+      {
+        regex: /(dinner|lunch|breakfast|meal)/i,
+        weight: 0.85,
+        test: (text) => true,
+      },
+      {
+        regex: /(hungry|starving|craving)/i,
+        weight: 0.9,
+        test: (text) => true,
+      }
     ],
     delivery: [
-      {regex: /(deliver|ship|send|mail)/, weight: 1.0},
-      {regex: /(package|parcel)/, weight: 0.9},
-      {regex: /(ups|usps|fedex|dhl)/, weight: 0.95},
-      {regex: /(same day|overnight)/, weight: 0.85},
-      {regex: /(courier|dispatch)/, weight: 0.8}
+      {
+        regex: /(deliver|ship|send|mail)/i,
+        weight: 1.0,
+        test: (text) => !/(food|ride|eat)/i.test(text),
+      },
+      {
+        regex: /(package|parcel)/i,
+        weight: 0.9,
+        test: (text) => true,
+      },
+      {
+        regex: /(ups|usps|fedex|dhl)/i,
+        weight: 0.95,
+        test: (text) => true,
+      },
+      {
+        regex: /(same day|overnight)/i,
+        weight: 0.85,
+        test: (text) => true,
+      },
+      {
+        regex: /(courier|dispatch)/i,
+        weight: 0.8,
+        test: (text) => true,
+      }
     ],
     business: [
       {regex: /(business|shop|store)/, weight: 1.0},
