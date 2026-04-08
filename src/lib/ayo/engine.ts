@@ -71,6 +71,10 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
   
   // Enhanced detection patterns with weights
   const patterns: Record<AyoCategory, {regex: RegExp, weight: number}[]> = {
+    general: [
+      {regex: /(best|recommend|suggest)/, weight: 0.8},
+      {regex: /(what|which|where)/, weight: 0.7}
+    ],
     ride: [
       {regex: /(ride|uber|lyft|taxi|cab)/, weight: 1.0},
       {regex: /(get me to|need (a|to) go)/, weight: 0.9},
