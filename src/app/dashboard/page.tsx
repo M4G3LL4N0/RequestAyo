@@ -1,15 +1,18 @@
 import { RequestHistory } from "@/components/dashboard/RequestHistory";
 import { getDashboardData } from "@/lib/actions/dashboard";
 
+import type { UserProfileRow, AyoRequestRow, ProviderRecommendationRow } from "@/lib/types/ayo";
+
 type DashboardData = {
-  profile: {
-    budget_sensitivity: number;
-    speed_sensitivity: number;
-    trust_sensitivity: number;
-    convenience_sensitivity: number;
-  } | null;
-  requests: any[];
-  recommendationsByRequest: Record<string, any[]>;
+  profile: Pick<
+    UserProfileRow,
+    | "budget_sensitivity" 
+    | "speed_sensitivity"
+    | "trust_sensitivity"
+    | "convenience_sensitivity"
+  > | null;
+  requests: AyoRequestRow[];
+  recommendationsByRequest: Record<string, ProviderRecommendationRow[]>;
 };
 
 export default async function DashboardPage({
