@@ -73,6 +73,7 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
   interface Pattern {
     regex: RegExp;
     weight: number;
+    test: (text: string) => boolean;
   }
 
   const patterns: Record<AyoCategory, Pattern[]> = {
