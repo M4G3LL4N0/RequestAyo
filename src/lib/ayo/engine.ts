@@ -152,16 +152,33 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
   };
 }
 
+function validateProfileSensitivity(score: number | undefined, fieldName: string): number {
+  if (score === undefined) return 50;
+  if (score < 0 || score > 100) {
+    console.warn(`Invalid ${fieldName} value ${score}, clamping to 0-100 range`);
+    return Math.max(0, Math.min(100, score));
+  }
+  return score;
+}
+
 function calculateOptionScores(
   options: AyoOption[],
   profile?: AyoProfile
 ): AyoOption[] {
+  // Validate profile scores
+  const validatedProfile = profile ? {
+    ...profile,
+    budgetSensitivity: validateProfileSensitivity(profile.budgetSensitivity, 'budgetSensitivity'),
+    speedSensitivity: validateProfileSensitivity(profile.speedSensitivity, 'speedSensitivity'),
+    trustSensitivity: validateProfileSensitivity(profile.trustSensitivity, 'trustSensitivity'),
+    convenienceSensitivity: validateProfileSensitivity(profile.convenienceSensitivity, 'convenienceSensitivity')
+  } : undefined;
   return options.map(opt => {
     const reasoning: string[] = [];
     let adjustedScore = opt.baseScore;
     
     // Apply profile preferences
-    if (profile) {
+    if (validatedProfile) {
       // Enhanced budget sensitivity with non-linear scaling
       const budgetWeight = profile.budgetSensitivity ?? 50;
       if (opt.priceEstimate) {
