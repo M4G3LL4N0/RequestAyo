@@ -167,22 +167,22 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
       {regex: /(doctor|dentist|appointment)/, weight: 0.95}
     ],
     shopping: [
-      {regex: /(buy|purchase)/, weight: 1.0},
-      {regex: /(shop(|ping)|store)/, weight: 0.9},
-      {regex: /(product|item|goods)/, weight: 0.85},
-      {regex: /(best deal|price|cheap)/, weight: 0.95}
+      createPattern(/(buy|purchase)/, 1.0),
+      createPattern(/(shop(|ping)|store)/, 0.9),
+      createPattern(/(product|item|goods)/, 0.85),
+      createPattern(/(best deal|price|cheap)/, 0.95)
     ],
     travel: [
-      {regex: /(flight|airplane)/, weight: 1.0},
-      {regex: /(hotel|accommodation)/, weight: 0.9},
-      {regex: /(vacation|trip)/, weight: 0.85},
-      {regex: /(travel|journey)/, weight: 0.8}
+      createPattern(/(flight|airplane)/, 1.0),
+      createPattern(/(hotel|accommodation)/, 0.9),
+      createPattern(/(vacation|trip)/, 0.85),
+      createPattern(/(travel|journey)/, 0.8)
     ],
     advice: [
-      {regex: /(what should|how to)/, weight: 1.0},
-      {regex: /(best way|recommend)/, weight: 0.95},
-      {regex: /(should i|advice)/, weight: 0.9},
-      {regex: /(opinion|suggestion)/, weight: 0.85}
+      createPattern(/(what should|how to)/, 1.0),
+      createPattern(/(best way|recommend)/, 0.95),
+      createPattern(/(should i|advice)/, 0.9),
+      createPattern(/(opinion|suggestion)/, 0.85)
     ]
   };
 
