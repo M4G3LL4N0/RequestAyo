@@ -8,7 +8,7 @@
 
 # RequestAyo
 
-**```bash npm run dev # or yarn dev # or pnpm dev # or bun dev ```**
+**Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.**
 
 ## What is actually here
 
@@ -27,10 +27,9 @@ This file was generated from the repository's own source tree rather than
 written by hand. Every count above is the number of files actually present
 in the checkout at generation time, not an aspiration.
 
-A previous version of this README was the unmodified `create-next-app`
-template. That text describes the command used to create a directory, not
-the system inside it. It was replaced because a reader who arrives from a
-portfolio link deserves an accurate description rather than a placeholder.
+An earlier version of this file was framework generator output, which
+describes the command used to create a directory rather than the system
+inside it. It was replaced for that reason.
 
 Documentation surface: 4 project documents in the repository.
 
