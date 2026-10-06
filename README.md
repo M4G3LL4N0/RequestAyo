@@ -1,12 +1,3 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
 <p align="center">
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="assets/hero/hero-reduced.svg">
@@ -15,38 +6,46 @@ npm run dev
   </picture>
 </p>
 
-<p align="center">
-  <picture>
-    <source media="(prefers-reduced-motion: reduce)" srcset="assets/hero/computational-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/hero/computational-light.svg">
-    <img src="assets/hero/computational-motion.svg" alt="State machine: objective &rarr; load context &rarr; call tools &rarr; verify." width="100%">
-  </picture>
-</p>
+# RequestAyo
 
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**```bash npm run dev # or yarn dev # or pnpm dev # or bun dev ```**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What is actually here
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| | |
+| --- | --- |
+| Language | TypeScript, SQL, JavaScript |
+| Build | `package.json` |
+| Tests | none present |
+| CI | none present |
+| Entry points | `src/app/page.tsx` |
+| Category | Agent |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Why this README looks like this
 
-## Learn More
+This file was generated from the repository's own source tree rather than
+written by hand. Every count above is the number of files actually present
+in the checkout at generation time, not an aspiration.
 
-To learn more about Next.js, take a look at the following resources:
+A previous version of this README was the unmodified `create-next-app`
+template. That text describes the command used to create a directory, not
+the system inside it. It was replaced because a reader who arrives from a
+portfolio link deserves an accurate description rather than a placeholder.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Documentation surface: 4 project documents in the repository.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How it behaves
 
-## Deploy on Vercel
+An objective becomes context, tools read and write state, the loop closes.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Architecture: data flow.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Status
+
+Source of truth: the local checkout. This repository is presented as part of
+a portfolio and is not the canonical home for the product.
+
+---
+
+Part of the DUNG30N5 x NOAERTH portfolio. Repository:
+[`M4G3LL4N0/RequestAyo`](https://github.com/M4G3LL4N0/RequestAyo).
