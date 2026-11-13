@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { AdminRequests } from "@/components/admin/AdminRequests";
 import { getAdminData } from "@/lib/actions/admin";
 
