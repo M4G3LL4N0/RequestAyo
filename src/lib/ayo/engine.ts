@@ -161,10 +161,10 @@ function detectIntent(input: string): {category: AyoCategory, intent: AyoIntent}
       }
     ],
     business: [
-      {regex: /(business|shop|store)/, weight: 1.0},
-      {regex: /(mechanic|repair|service)/, weight: 0.9},
-      {regex: /(haircut|barber|salon)/, weight: 0.85},
-      {regex: /(doctor|dentist|appointment)/, weight: 0.95}
+      {regex: /(business|shop|store)/, weight: 1.0, test: () => true},
+      {regex: /(mechanic|repair|service)/, weight: 0.9, test: () => true},
+      {regex: /(haircut|barber|salon)/, weight: 0.85, test: () => true},
+      {regex: /(doctor|dentist|appointment)/, weight: 0.95, test: () => true}
     ],
     shopping: [
       createPattern(/(buy|purchase)/, 1.0),
