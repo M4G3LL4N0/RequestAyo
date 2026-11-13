@@ -3,6 +3,9 @@ import type { UserProfileRow, AyoRequestRow, ProviderRecommendationRow } from ".
 import { SUPABASE_SCHEMA, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from "./config";
 
 export function createServerSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase server credentials are not configured.");
+  }
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     db: { schema: SUPABASE_SCHEMA },
     auth: {
@@ -14,6 +17,9 @@ export function createServerSupabaseClient() {
 
 // For future auth integration
 export function createServerClient() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("Supabase client credentials are not configured.");
+  }
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     db: { schema: SUPABASE_SCHEMA },
     auth: {
