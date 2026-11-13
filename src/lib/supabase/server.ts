@@ -13,11 +13,10 @@ export function createServerSupabaseClient() {
 }
 
 // For future auth integration
-export function createServerClient(cookieStore: any) {
+export function createServerClient() {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     db: { schema: SUPABASE_SCHEMA },
     auth: {
-      cookieStore,
       persistSession: true,
       autoRefreshToken: true,
     },
