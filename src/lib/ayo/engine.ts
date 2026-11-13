@@ -237,7 +237,7 @@ function validateProfileSensitivity(score: number | undefined, fieldName: string
 }
 
 function calculateOptionScores(
-  options: AyoOption[],
+  options: Array<Omit<AyoOption, "adjustedScore">>,
   profile?: AyoProfile
 ): AyoOption[] {
   // Validate profile scores
@@ -326,7 +326,7 @@ export function generateAyoRecommendation(
   const { category, intent } = detectIntent(input);
   
   // Base options with enhanced reasoning
-  const baseOptions: Record<AyoCategory, AyoOption[]> = {
+  const baseOptions: Record<AyoCategory, Array<Omit<AyoOption, "adjustedScore">>> = {
     general: [
       {
         providerType: "general",
