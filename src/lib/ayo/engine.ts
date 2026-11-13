@@ -243,10 +243,10 @@ function calculateOptionScores(
   // Validate profile scores
   const validatedProfile = profile ? {
     ...profile,
-    budgetSensitivity: validateProfileSensitivity(validatedProfile.budgetSensitivity, 'budgetSensitivity'),
-    speedSensitivity: validateProfileSensitivity(validatedProfile.speedSensitivity, 'speedSensitivity'),
-    trustSensitivity: validateProfileSensitivity(validatedProfile.trustSensitivity, 'trustSensitivity'),
-    convenienceSensitivity: validateProfileSensitivity(validatedProfile.convenienceSensitivity, 'convenienceSensitivity')
+    budgetSensitivity: validateProfileSensitivity(profile.budgetSensitivity, 'budgetSensitivity'),
+    speedSensitivity: validateProfileSensitivity(profile.speedSensitivity, 'speedSensitivity'),
+    trustSensitivity: validateProfileSensitivity(profile.trustSensitivity, 'trustSensitivity'),
+    convenienceSensitivity: validateProfileSensitivity(profile.convenienceSensitivity, 'convenienceSensitivity')
   } : undefined;
   return options.map(opt => {
     const reasoning: string[] = [];
