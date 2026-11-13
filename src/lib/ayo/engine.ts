@@ -580,9 +580,9 @@ export function generateAyoRecommendation(
     summary: `Ayo recommends ${primary.providerName} as your best option for ${category} needs.`,
     debug: {
       profileInfluence: profile ? {
-        budgetSensitivity: profile.budgetSensitivity,
-        speedSensitivity: profile.speedSensitivity,
-        trustSensitivity: profile.trustSensitivity
+        budgetSensitivity: profile.budgetSensitivity ?? 50,
+        speedSensitivity: profile.speedSensitivity ?? 50,
+        trustSensitivity: profile.trustSensitivity ?? 50
       } : undefined
     }
   };
