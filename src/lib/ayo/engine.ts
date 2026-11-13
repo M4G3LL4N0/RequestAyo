@@ -243,10 +243,10 @@ function calculateOptionScores(
   // Validate profile scores
   const validatedProfile = profile ? {
     ...profile,
-    budgetSensitivity: validateProfileSensitivity(profile.budgetSensitivity, 'budgetSensitivity'),
-    speedSensitivity: validateProfileSensitivity(profile.speedSensitivity, 'speedSensitivity'),
-    trustSensitivity: validateProfileSensitivity(profile.trustSensitivity, 'trustSensitivity'),
-    convenienceSensitivity: validateProfileSensitivity(profile.convenienceSensitivity, 'convenienceSensitivity')
+    budgetSensitivity: validateProfileSensitivity(validatedProfile.budgetSensitivity, 'budgetSensitivity'),
+    speedSensitivity: validateProfileSensitivity(validatedProfile.speedSensitivity, 'speedSensitivity'),
+    trustSensitivity: validateProfileSensitivity(validatedProfile.trustSensitivity, 'trustSensitivity'),
+    convenienceSensitivity: validateProfileSensitivity(validatedProfile.convenienceSensitivity, 'convenienceSensitivity')
   } : undefined;
   return options.map(opt => {
     const reasoning: string[] = [];
@@ -255,7 +255,7 @@ function calculateOptionScores(
     // Apply profile preferences
     if (validatedProfile) {
       // Enhanced budget sensitivity with non-linear scaling
-      const budgetWeight = profile.budgetSensitivity ?? 50;
+      const budgetWeight = validatedProfile.budgetSensitivity ?? 50;
       if (opt.priceEstimate) {
         const priceImpact = Math.tanh((budgetWeight - 50) / 25) * 10;
         adjustedScore += priceImpact;
@@ -263,7 +263,7 @@ function calculateOptionScores(
       }
 
       // Enhanced speed sensitivity with exponential decay
-      const speedWeight = profile.speedSensitivity ?? 50;
+      const speedWeight = validatedProfile.speedSensitivity ?? 50;
       if (opt.etaEstimate) {
         const speedImpact = Math.exp(-Math.abs(speedWeight - 50) / 25) * 8;
         adjustedScore += speedImpact;
@@ -271,7 +271,7 @@ function calculateOptionScores(
       }
 
       // Enhanced trust sensitivity with sigmoid function
-      const trustWeight = profile.trustSensitivity ?? 50;
+      const trustWeight = validatedProfile.trustSensitivity ?? 50;
       if (opt.trustScore) {
         const trustImpact = 1 / (1 + Math.exp(-(trustWeight - 50) / 10)) * 6;
         adjustedScore += trustImpact;
@@ -279,8 +279,8 @@ function calculateOptionScores(
       }
 
       // Enhanced provider preferences with diminishing returns
-      if (profile.preferredProviders) {
-        const prefMatch = profile.preferredProviders.find(
+      if (validatedProfile.preferredProviders) {
+        const prefMatch = validatedProfile.preferredProviders.find(
           p => p.providerName === opt.providerName && p.providerType === opt.providerType
         );
         if (prefMatch) {
@@ -291,8 +291,8 @@ function calculateOptionScores(
       }
 
       // Enhanced disliked providers with exponential penalty
-      if (profile.dislikedProviders) {
-        const dislikeMatch = profile.dislikedProviders.find(
+      if (validatedProfile.dislikedProviders) {
+        const dislikeMatch = validatedProfile.dislikedProviders.find(
           p => p.providerName === opt.providerName && p.providerType === opt.providerType
         );
         if (dislikeMatch) {
